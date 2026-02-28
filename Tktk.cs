@@ -58,7 +58,7 @@ namespace NLServiceKit
         public void ShowMainMenu(Player player)
         {
             UIPanel panel = new UIPanel("<b><color=#FF2F00>Pannel Illégal | Northfield RP", UIPanel.PanelType.TabPrice);
-            panel.AddTabLine("<b><color=#FF8C00>Fouiller\n" + "<b><color=#BABABA><size=10>Fouille le joueur le plus proche.", "<color=#BABABA><size=8><i>Clique ici pour fouiller le joueur", ItemUtils.GetIconIdByItemId(38), delegate
+            panel.AddTabLine("<b><color=#FF8C00>Fouiller\n" + "<color=#FFFFFF><size=10>Fouille les poche du joueur le plus proche.", "", ItemUtils.GetIconIdByItemId(38), delegate
             {
                 if (CheckActionCooldown(player))
                 {
@@ -74,7 +74,7 @@ namespace NLServiceKit
                     }
                 }
             });
-            panel.AddTabLine("<b><color=#FF2F00>Voler de l'argent\n" + "<b><color=#BABABA><size=10>Vole ", "<color=#BABABA><size=8><i>Clique ici pour voler de l'argent", ItemUtils.GetIconIdByItemId(152), delegate
+            panel.AddTabLine("<b><color=#FF2F00>Voler de l'argent\n" + "<color=#FFFFFF><size=10>Vole de l'argent au citoyen le plus proche de toi.", "", ItemUtils.GetIconIdByItemId(152), delegate
             {
                 if (CheckActionCooldown(player))
                 {
@@ -90,7 +90,23 @@ namespace NLServiceKit
                     }
                 }
             });
-            panel.AddTabLine("<b><color=#8A2BE2>Attacher/détacher", "<color=#BABABA><size=8><i>Atache ou détache un citoyen.", ItemUtils.GetIconIdByItemId(6), delegate
+            panel.AddTabLine("<b><color=#FF8C00>Assomer\n" + "<color=#FFFFFF><size=10>Donne un gros coup au citoyen le plus proche pour qu'il oubllie les 15 dernière minutes.", "", ItemUtils.GetIconIdByItemId(38), delegate
+            {
+                if (CheckActionCooldown(player))
+                {
+                    Player closestPlayer6 = player.GetClosestPlayer();
+                    if (closestPlayer6 != null)
+                    {
+                        player.ClosePanel(panel);
+                        Assomer(player, closestPlayer6);
+                    }
+                    else
+                    {
+                        player.Notify("Oups...", "Aucun citoyen à proximité", NotificationManager.Type.Error);
+                    }
+                }
+            });
+            panel.AddTabLine("<b><color=#8A2BE2>Attacher/détacher\n" + "<color=#FFFFFF><size=10>Atache ou détache le citoyen le plus proche de toi.", "", ItemUtils.GetIconIdByItemId(6), delegate
             {
                 Player target = player.GetClosestPlayer();
                 if (target != null)
@@ -123,30 +139,19 @@ namespace NLServiceKit
                 {
                     player.Notify($"<color={LifeServer.COLOR_RED}Oups...", "Aucun citoyen à proximité", NotificationManager.Type.Error);
                 }
-            });
-            
-            panel.AddTabLine("<b><color=#FF2F00>Masquer", "<color=#BABABA><size=8><i>Masquer les yeux d'un citoyen.", ItemUtils.GetIconIdByItemId(126), delegate
+            });  
+            panel.AddTabLine("<b><color=#FF2F00>Masquer\n" + "<color=#FFFFFF><size=10>Masquer les yeux d'un citoyen.(Permet au citoyen de ne rien voir)", "", ItemUtils.GetIconIdByItemId(126), delegate
             {
-                bool masquer = false;
                 if (CheckActionCooldown(player))
                 {
                     Player closestPlayer2 = player.GetClosestPlayer();
                     if (closestPlayer2 != null)
                     {
-                        if (masquer == false)
-                        {
+                        
                             Masquer(player, closestPlayer2);
                             player.Notify("Information", "Le citoyen est attaché, impossible de le masquer", NotificationManager.Type.Warning);
-                            masquer = true;
                             player.ClosePanel(panel);
-                            return;
-                        }
-                        else if (masquer == true)
-                        {
-                            Demasquer(player, closestPlayer2);
-                            player.ClosePanel(panel);
-                            return;
-                        }
+
                     }
                     else
                     {
@@ -154,7 +159,7 @@ namespace NLServiceKit
                     }
                 }
             });
-            panel.AddTabLine("<b><color=#FF2F00>Démasquer", "<color=#BABABA><size=8><i>Démasquer joueur", ItemUtils.GetIconIdByItemId(126), delegate
+            panel.AddTabLine("<b><color=#FF2F00>Démasquer\n" + "<color=#FFFFFF><size=10>Démasquer les yeux du citoyen le plus proche de toi.","", ItemUtils.GetIconIdByItemId(126), delegate
             {
                 if (CheckActionCooldown(player))
                 {
@@ -227,6 +232,23 @@ namespace NLServiceKit
                 return;
             }
 
+            UIPanel panel = new UIPanel("Demande de fouille", UIPanel.PanelType.Text);
+            panel.SetText("Une personne souhaite vous fouiller.\n\nAcceptez-vous ?");
+            panel.AddButton("<b><color=#F54927>Refuser", delegate
+            {
+                target.ClosePanel(panel);
+                player.Notify("Refus", "L'individu a refusé", NotificationManager.Type.Error);
+            });
+            panel.AddButton("<b><color=#56EB4B>Accepter", delegate
+            {
+                target.ClosePanel(panel);
+                AppliquerFouille(player, target);
+            });
+            target.ShowPanelUI(panel);
+        }
+        private void Assomer(Player player, Player target)
+        {
+           
             UIPanel panel = new UIPanel("Demande de fouille", UIPanel.PanelType.Text);
             panel.SetText("Une personne souhaite vous fouiller.\n\nAcceptez-vous ?");
             panel.AddButton("<b><color=#F54927>Refuser", delegate
@@ -349,4 +371,3 @@ namespace NLServiceKit
         }
     }
 }
-z

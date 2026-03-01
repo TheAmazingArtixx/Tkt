@@ -1,13 +1,18 @@
 using Life;
+using Life.InventorySystem;
 using Life.Network;
 using Life.UI;
+using Life.VehicleSystem;
+using ModKit;
 using ModKit.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace NLServiceKit
+namespace Artixx_Ill
+
 {
     public class IllegalTab_ : Plugin
     {
@@ -19,6 +24,10 @@ namespace NLServiceKit
         private const int ActionCooldownSeconds = 15;
         private const float MasquerDurationSeconds = 30f;
 
+        internal static bool PlayerHasItem(Player player, int itemId)
+        {
+            return ((IEnumerable<ItemInventory>)player.setup.inventory.items).Any((ItemInventory x) => x.itemId == itemId);
+        }
         public IllegalTab_(IGameAPI api) : base(api)
         {
             Instance = this;
@@ -58,7 +67,7 @@ namespace NLServiceKit
         public void ShowMainMenu(Player player)
         {
             UIPanel panel = new UIPanel("<b><color=#FF2F00>Pannel Illégal | Northfield RP", UIPanel.PanelType.TabPrice);
-            panel.AddTabLine("<b><color=#FF8C00>Fouiller\n" + "<color=#FFFFFF><size=10>Fouille les poche du joueur le plus proche.", "", ItemUtils.GetIconIdByItemId(38), delegate
+            panel.AddTabLine("<b>Fouiller\n" + "<color=#BABABA>Fouille les poche du joueur le plus proche.", "", ItemUtils.GetIconIdByItemId(38), delegate
             {
                 if (CheckActionCooldown(player))
                 {
@@ -74,7 +83,7 @@ namespace NLServiceKit
                     }
                 }
             });
-            panel.AddTabLine("<b><color=#FF2F00>Voler de l'argent\n" + "<color=#FFFFFF><size=10>Vole de l'argent au citoyen le plus proche de toi.", "", ItemUtils.GetIconIdByItemId(152), delegate
+            panel.AddTabLine("<b>Voler de l'argent\n" + "<color=#BABABA><size=10>Vole de l'argent au citoyen le plus proche de toi.", "", ItemUtils.GetIconIdByItemId(1779), delegate
             {
                 if (CheckActionCooldown(player))
                 {
@@ -90,7 +99,7 @@ namespace NLServiceKit
                     }
                 }
             });
-            panel.AddTabLine("<b><color=#FF8C00>Assomer\n" + "<color=#FFFFFF><size=10>Donne un gros coup au citoyen le plus proche pour qu'il oubllie les 15 dernière minutes.", "", ItemUtils.GetIconIdByItemId(38), delegate
+            panel.AddTabLine("<b>Assomer\n" + "<color=#BABABA><size=10>Donne un gros coup au citoyen le plus proche pour qu'il oubllie les 15 dernière minutes.", "", ItemUtils.GetIconIdByItemId(1298), delegate
             {
                 if (CheckActionCooldown(player))
                 {
@@ -106,7 +115,7 @@ namespace NLServiceKit
                     }
                 }
             });
-            panel.AddTabLine("<b><color=#8A2BE2>Attacher/détacher\n" + "<color=#FFFFFF><size=10>Atache ou détache le citoyen le plus proche de toi.", "", ItemUtils.GetIconIdByItemId(6), delegate
+            panel.AddTabLine("<b>Attacher/détacher\n" + "<color=#BABABA><size=10>Atache ou détache le citoyen le plus proche de toi.", "", ItemUtils.GetIconIdByItemId(6), delegate
             {
                 Player target = player.GetClosestPlayer();
                 if (target != null)
@@ -140,7 +149,7 @@ namespace NLServiceKit
                     player.Notify($"<color={LifeServer.COLOR_RED}Oups...", "Aucun citoyen à proximité", NotificationManager.Type.Error);
                 }
             });  
-            panel.AddTabLine("<b><color=#FF2F00>Masquer\n" + "<color=#FFFFFF><size=10>Masquer les yeux d'un citoyen.(Permet au citoyen de ne rien voir)", "", ItemUtils.GetIconIdByItemId(126), delegate
+            panel.AddTabLine("<b>Masquer\n" + "<color=#BABABA><size=10>Masquer les yeux d'un citoyen.(Permet au citoyen de ne rien voir)", "", ItemUtils.GetIconIdByItemId(126), delegate
             {
                 if (CheckActionCooldown(player))
                 {
@@ -159,7 +168,7 @@ namespace NLServiceKit
                     }
                 }
             });
-            panel.AddTabLine("<b><color=#FF2F00>Démasquer\n" + "<color=#FFFFFF><size=10>Démasquer les yeux du citoyen le plus proche de toi.","", ItemUtils.GetIconIdByItemId(126), delegate
+            panel.AddTabLine("<b>Démasquer\n" + "<color=#BABABA><size=10>Démasquer les yeux du citoyen le plus proche de toi.", "", ItemUtils.GetIconIdByItemId(126), delegate
             {
                 if (CheckActionCooldown(player))
                 {
@@ -192,7 +201,59 @@ namespace NLServiceKit
                     }
                 });
             });
-            
+            panel.AddTabLine("<b>Crocheter un véhicule\n" + "<color=#BABABA><size=10>Crocheter la serrure d'un véhicule (Pied de biche ou Pince)", "", ItemUtils.GetIconIdByItemId(126), delegate
+            {
+                Vehicle closestVehicle = player.GetClosestVehicle();
+                if ((UnityEngine.Object)(object)closestVehicle == null)
+                {
+                    player.Notify("Erreur", "Aucun véhicule à proximité", NotificationManager.Type.Error);
+                }
+                else if (!closestVehicle.NetworkisLocked)
+                {
+                    player.Notify("Attention", "Le véhicule est déjà déverrouillé", NotificationManager.Type.Warning);
+                }
+                else if (!PlayerHasItem(player, 1580))
+                {
+                    player.Notify("Erreur", "Vous avez besoin d'un pied-de-biche pour déverrouiller ce véhicule !", NotificationManager.Type.Error);
+                }
+                else
+                {
+                    System.Random random2 = new System.Random();
+                    int num6 = random2.Next(1, 7);
+                    if (num6 == 2)
+                    {
+                        closestVehicle.NetworkisLocked = false;
+                        player.Notify("Succès", "Véhicule déverrouillé ! Le pied-de-biche s'est cassé.", NotificationManager.Type.Success);
+                        player.setup.inventory.RemoveItem(1580, 1, false);
+
+
+                    }
+                    else
+                    {
+                        player.Notify("Échec", "Tentative échouée. Le pied-de-biche reste utilisable.", NotificationManager.Type.Error);
+                    }
+
+                    player.ClosePanel(panel);
+                }
+            });
+            panel.AddTabLine("<b><color=#FF2F00>Assomer", "<color=#BABABA><size=8><i>Assome un joueur pour qu'il oublie les 10 dernières minutes.", ItemUtils.GetIconIdByItemId(126), delegate
+                {
+                    if (CheckActionCooldown(player))
+                    {
+                        Player closestPlayer = player.GetClosestPlayer();
+                        if (closestPlayer != null)
+                        {
+                            player.ClosePanel(panel);
+                            player.Notify("Informations", "Vous avez assomer quelqu'un", NotificationManager.Type.Info);
+                            closestPlayer.setup.TargetShowCenterText("Vous êtes assomer", "Vous oubliez les 10 dernières minutes", 10f);
+                        }
+                        else
+                        {
+                            player.Notify("Oups...", "Aucun citoyen à proximité", NotificationManager.Type.Error);
+                        }
+                    }
+                });
+           
 
 
             panel.AddButton("<b><color=#F54927>Fermer", delegate
@@ -246,11 +307,11 @@ namespace NLServiceKit
             });
             target.ShowPanelUI(panel);
         }
-        private void Assomer(Player player, Player target)
+        private void Assomer(Player player, Player target)  
         {
            
-            UIPanel panel = new UIPanel("Demande de fouille", UIPanel.PanelType.Text);
-            panel.SetText("Une personne souhaite vous fouiller.\n\nAcceptez-vous ?");
+            UIPanel panel = new UIPanel("Demande d'assomage", UIPanel.PanelType.Text);
+            panel.SetText("Une personne souhaite vous assomer.\n <i>Vous oublierez les 15 dernières minutes</i>\nAcceptez-vous ?");
             panel.AddButton("<b><color=#F54927>Refuser", delegate
             {
                 target.ClosePanel(panel);
@@ -259,7 +320,7 @@ namespace NLServiceKit
             panel.AddButton("<b><color=#56EB4B>Accepter", delegate
             {
                 target.ClosePanel(panel);
-                AppliquerFouille(player, target);
+                target.setup.TargetShowCenterText("Vous êtes assomer", "Vous oubliez les 15 dernières minutes", 10f);
             });
             target.ShowPanelUI(panel);
         }
@@ -369,5 +430,7 @@ namespace NLServiceKit
             player.Notify("Succès", "Vous avez démasqué " + target.character.Firstname + " " + target.character.Lastname, NotificationManager.Type.Success);
             target.Notify("Démasqué", "Vous avez été démasqué", NotificationManager.Type.Success);
         }
+
+       
     }
 }

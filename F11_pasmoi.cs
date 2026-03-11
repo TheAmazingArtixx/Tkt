@@ -1,8 +1,3 @@
-#region assembly PanelIllégalF11, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// C:\Program Files (x86)\Steam\steamapps\common\Nova-Life\Servers\NL\Plugins\PanelIllegalF11.dll
-// Decompiled with ICSharpCode.Decompiler 8.2.0.7535
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
